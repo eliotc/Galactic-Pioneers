@@ -162,12 +162,30 @@
         preloadAudio(destroySound);
         preloadAudio(backgroundMusic);
 
-        // Set up background music properties
         backgroundMusic.loop = true;
         backgroundMusic.volume = 0.1; // Set initial volume to minimum
         backgroundMusic.addEventListener('canplaythrough', () => {
-            backgroundMusic.play();
+            // Play the background music on user interaction to comply with browser policies
+            backgroundMusic.play().catch((error) => {
+                console.log('Audio play failed:', error);
+            });
         }, { once: true }); // Start playing once preloaded
+
+        // Function to start background music on user interaction
+        function startBackgroundMusicOnInteraction() {
+            backgroundMusic.play().catch((error) => {
+                console.log('Audio play failed:', error);
+            });
+
+            // Remove listeners after the first interaction to avoid repeated calls
+            window.removeEventListener('keydown', startBackgroundMusicOnInteraction);
+            window.removeEventListener('click', startBackgroundMusicOnInteraction);
+        }
+
+        // Add event listeners to start background music on first user interaction
+        window.addEventListener('keydown', startBackgroundMusicOnInteraction);
+        window.addEventListener('click', startBackgroundMusicOnInteraction);
+
 
         const spaceshipIcon = new Image();
         spaceshipIcon.src = 'spacecraft_V4.png';
