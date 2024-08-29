@@ -20,7 +20,20 @@
             background: url('space_background.jpg') repeat;
         }
 
-        #scoreboard,
+
+        #scoreboard {
+            top: 10px;
+            left: 100px;
+            /* Adjusted from 10px to 100px to move it further right */
+            color: #fff;
+            position: absolute;
+            font-size: 24px;
+            font-family: 'Arial', sans-serif;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
         #gameTitle {
             position: absolute;
             top: 10px;
@@ -137,8 +150,24 @@
         const destroySound = document.getElementById('destroySound');
         const backgroundMusic = document.getElementById('backgroundMusic');
 
-        backgroundMusic.volume = 0.1;
-        backgroundMusic.play();
+        // Function to preload audio
+        function preloadAudio(audio) {
+            audio.preload = 'auto';
+            audio.load();
+        }
+
+        // Preload all audio files
+        preloadAudio(shootSound);
+        preloadAudio(hitSound);
+        preloadAudio(destroySound);
+        preloadAudio(backgroundMusic);
+
+        // Set up background music properties
+        backgroundMusic.loop = true;
+        backgroundMusic.volume = 0.1; // Set initial volume to minimum
+        backgroundMusic.addEventListener('canplaythrough', () => {
+            backgroundMusic.play();
+        }, { once: true }); // Start playing once preloaded
 
         const spaceshipIcon = new Image();
         spaceshipIcon.src = 'spacecraft_V4.png';
@@ -182,15 +211,15 @@
             ctx.translate(spaceship.x, spaceship.y);
             ctx.rotate(spaceship.angle + Math.PI / 2); // Adjust initial rotation to make the spaceship point to 12 o'clock
             ctx.drawImage(spaceshipIcon, -30, -30, 60, 60);
-            ctx.restore();
+            // ctx.restore();
 
             // Draw muzzle flash
             if (muzzleFlash.active) {
                 ctx.fillStyle = 'yellow';
                 ctx.beginPath();
-                ctx.moveTo(30, 0);
-                ctx.lineTo(45, -10);
-                ctx.lineTo(45, 10);
+                ctx.moveTo(0, -30);  // Adjusted for 90-degree rotation
+                ctx.lineTo(-10, -45); // Adjusted for 90-degree rotation
+                ctx.lineTo(10, -45);  // Adjusted for 90-degree rotation
                 ctx.closePath();
                 ctx.fill();
 
@@ -201,26 +230,32 @@
                 }
             }
 
+
             // Draw thruster particles
             if (spaceship.isAccelerating) {
                 ctx.fillStyle = 'orange';
                 for (let i = 0; i < 3; i++) {
                     spaceship.thrusterParticles.push({
-                        x: -30,
-                        y: Math.random() * 10 - 5,
+                        x: Math.random() * 10 - 5,
+                        y: 30,  // Adjusted for 90-degree rotation
                         size: Math.random() * 5 + 2,
                         speed: Math.random() * 2 + 1
                     });
                 }
             }
 
+
             spaceship.thrusterParticles.forEach((particle, index) => {
                 ctx.beginPath();
                 ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
                 ctx.fill();
-                particle.x -= particle.speed;
-                particle.size *= 0.95;
 
+                // Adjust the movement for 90-degree counterclockwise rotation
+                particle.y += particle.speed;  // Move particles "downwards" in the new coordinate system
+
+                particle.size *= 0.95; // Reduce the size gradually
+
+                // Remove the particle if it's too small
                 if (particle.size < 0.5) {
                     spaceship.thrusterParticles.splice(index, 1);
                 }
