@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Galactic Pioneers</title>
+    <div id="gameTitle">Aware AI Community Launch - Galactic Pioneers</div>
+
     <style>
         body {
             margin: 0;
@@ -19,6 +21,20 @@
         }
 
         #scoreboard,
+        #gameTitle {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px;
+            font-family: 'Arial', sans-serif;
+            color: purple;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
         #timer,
         #lives {
             position: absolute;
@@ -75,6 +91,7 @@
 </head>
 
 <body>
+    <div id="gameTitle">Aware AI Community Launch - Galactic Pioneers</div>
     <div id="instructions">
         <h1>Galactic Pioneers: Quick Start Guide</h1>
         <p>Destroy asteroids and score points in 30 seconds!</p>
@@ -133,7 +150,7 @@
         let spaceship = {
             x: canvas.width / 2,
             y: canvas.height / 2,
-            angle: 0,
+            angle: 45,
             velocityX: 0,
             velocityY: 0,
             rotationVelocity: 0,
@@ -163,8 +180,9 @@
         function drawSpaceship() {
             ctx.save();
             ctx.translate(spaceship.x, spaceship.y);
-            ctx.rotate(spaceship.angle);
+            ctx.rotate(spaceship.angle + Math.PI / 2); // Adjust initial rotation to make the spaceship point to 12 o'clock
             ctx.drawImage(spaceshipIcon, -30, -30, 60, 60);
+            ctx.restore();
 
             // Draw muzzle flash
             if (muzzleFlash.active) {
