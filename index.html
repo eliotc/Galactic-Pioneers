@@ -100,10 +100,47 @@
             padding: 20px;
             border-radius: 10px;
         }
+
+
+        #gameOverModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            /* Ensure it overlays all game elements */
+        }
+
+        #gameOverContent {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-family: 'Arial', sans-serif;
+        }
+
+        #gameOverContent button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
+    <div id="gameOverModal" style="display: none;">
+        <div id="gameOverContent">
+            <h1>Game Over</h1>
+            <p id="gameOverMessage"></p>
+            <button onclick="restartGame()">Restart Game</button>
+        </div>
+    </div>
     <div id="gameTitle">Aware AI Community Launch - Galactic Pioneers</div>
     <div id="instructions">
         <h1>Game and Musie created by prompting Large Language Models</h1>
@@ -203,7 +240,7 @@
             velocityY: 0,
             rotationVelocity: 0,
             lives: 3,
-            acceleration: 0.1,
+            acceleration: 0.2,
             reverseAcceleration: 0.05,
             friction: 0.98,
             rotationSpeed: 0.05,
@@ -224,6 +261,148 @@
 
         let explosions = [];
         let gameStarted = false; // Variable to track if the game has started
+
+        let textAsteroids200 = [];
+        let textAsteroids500 = [];
+        const textAsteroidCount = 3; // Number of each type of text asteroid
+        const textAsteroidSpeed200 = 2; // Speed for "200" text asteroids
+        const textAsteroidSpeed500 = 6; // Speed for "500" text asteroids (3 times faster)
+
+        function createTextAsteroids() {
+            // Create "200" text asteroids
+            while (textAsteroids200.length < textAsteroidCount) {
+                textAsteroids200.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    dx: (Math.random() * 2 - 1) * textAsteroidSpeed200,
+                    dy: (Math.random() * 2 - 1) * textAsteroidSpeed200,
+                });
+            }
+
+            // Create "500" text asteroids
+            while (textAsteroids500.length < textAsteroidCount) {
+                textAsteroids500.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    dx: (Math.random() * 2 - 1) * textAsteroidSpeed500,
+                    dy: (Math.random() * 2 - 1) * textAsteroidSpeed500,
+                });
+            }
+        }
+        function drawTextAsteroids() {
+            ctx.fillStyle = 'white';
+            ctx.font = '24px Arial';
+
+            // Draw "200" text asteroids
+            textAsteroids200.forEach(asteroid => {
+                ctx.fillText('200', asteroid.x, asteroid.y);
+
+                // Debug: Draw collision boundary
+                ctx.beginPath();
+                ctx.arc(asteroid.x, asteroid.y - 12, 15, 0, Math.PI * 2); // Adjust -12 to vertically center the text bounding circle
+                ctx.strokeStyle = 'red'; // For debugging
+                ctx.stroke();
+
+                asteroid.x += asteroid.dx;
+                asteroid.y += asteroid.dy;
+
+                // Bounce off walls
+                if (asteroid.x < 0 || asteroid.x > canvas.width) asteroid.dx = -asteroid.dx;
+                if (asteroid.y < 0 || asteroid.y > canvas.height) asteroid.dy = -asteroid.dy;
+            });
+
+            // Draw "500" text asteroids
+            textAsteroids500.forEach(asteroid => {
+                ctx.fillText('500', asteroid.x, asteroid.y);
+
+                // Debug: Draw collision boundary
+                ctx.beginPath();
+                ctx.arc(asteroid.x, asteroid.y - 12, 15, 0, Math.PI * 2); // Adjust -12 to vertically center the text bounding circle
+                ctx.strokeStyle = 'red'; // For debugging
+                ctx.stroke();
+
+                asteroid.x += asteroid.dx;
+                asteroid.y += asteroid.dy;
+
+                // Bounce off walls
+                if (asteroid.x < 0 || asteroid.x > canvas.width) asteroid.dx = -asteroid.dx;
+                if (asteroid.y < 0 || asteroid.y > canvas.height) asteroid.dy = -asteroid.dy;
+            });
+        }
+        function checkCollisions() {
+            // Existing asteroid collision logic...
+            asteroids.forEach((asteroid, aIndex) => {
+                if (Math.hypot(spaceship.x - asteroid.x, spaceship.y - asteroid.y) < asteroid.radius + 15) {
+                    hitSound.play();
+                    spaceship.lives--;
+                    updateDisplay();
+                    asteroids.splice(aIndex, 1);
+                    createAsteroids();
+                    createExplosion(asteroid.x, asteroid.y);
+                    if (spaceship.lives <= 0) {
+                        destroySound.play();
+                        endGame("Game Over! Your Score: " + score);
+                    }
+                }
+
+                bullets.forEach((bullet, bIndex) => {
+                    if (Math.hypot(bullet.x - asteroid.x, bullet.y - asteroid.y) < asteroid.radius) {
+                        new Audio('asteroid_hit.wav').play();
+                        score += 100;
+                        showHitFlash();
+                        updateDisplay();
+                        asteroids.splice(aIndex, 1);
+                        bullets.splice(bIndex, 1);
+                        createAsteroids();
+                        createExplosion(asteroid.x, asteroid.y);
+                    }
+                });
+            });
+
+            // New collision logic for text asteroids
+            textAsteroids200.forEach((asteroid, index) => {
+                let distance = Math.hypot(spaceship.x - asteroid.x, spaceship.y - (asteroid.y - 12));
+                if (distance < 30) { // Adjust collision radius as needed
+                    console.log("Collided with '200' text asteroid at:", asteroid.x, asteroid.y);
+
+                    score += 200;
+                    showCollectionFlash('200', asteroid.x, asteroid.y);
+                    updateDisplay();
+                    textAsteroids200.splice(index, 1);
+                }
+            });
+
+            textAsteroids500.forEach((asteroid, index) => {
+                let distance = Math.hypot(spaceship.x - asteroid.x, spaceship.y - (asteroid.y - 12));
+                if (distance < 30) { // Adjust collision radius as needed
+                    console.log("Collided with '500' text asteroid at:", asteroid.x, asteroid.y);
+                    score += 500;
+                    showCollectionFlash('500', asteroid.x, asteroid.y);
+                    updateDisplay();
+                    textAsteroids500.splice(index, 1);
+                }
+            });
+        }
+
+
+        function showCollectionFlash(points, x, y) {
+            const flashText = document.createElement('div');
+            flashText.innerText = `+${points}`;
+            flashText.style.position = 'absolute';
+            flashText.style.color = 'yellow';
+            flashText.style.fontSize = '24px';
+            flashText.style.fontFamily = 'Arial';
+            flashText.style.left = `${x}px`;
+            flashText.style.top = `${y}px`;
+            flashText.style.transform = 'translate(-50%, -50%)';
+            document.body.appendChild(flashText);
+
+            setTimeout(() => {
+                document.body.removeChild(flashText);
+            }, 500); // Flash duration
+        }
+
+
 
         function drawSpaceship() {
             ctx.save();
@@ -344,35 +523,6 @@
             });
         }
 
-        function checkCollisions() {
-            asteroids.forEach((asteroid, aIndex) => {
-                if (Math.hypot(spaceship.x - asteroid.x, spaceship.y - asteroid.y) < asteroid.radius + 15) {
-                    hitSound.play();
-                    spaceship.lives--;
-                    updateDisplay();
-                    asteroids.splice(aIndex, 1);
-                    createAsteroids();
-                    createExplosion(asteroid.x, asteroid.y);
-                    if (spaceship.lives <= 0) {
-                        destroySound.play();
-                        endGame("Game Over! Your Score: " + score);
-                    }
-                }
-
-                bullets.forEach((bullet, bIndex) => {
-                    if (Math.hypot(bullet.x - asteroid.x, bullet.y - asteroid.y) < asteroid.radius) {
-                        new Audio('asteroid_hit.wav').play();
-                        score += 100;
-                        showHitFlash();
-                        updateDisplay();
-                        asteroids.splice(aIndex, 1);
-                        bullets.splice(bIndex, 1);
-                        createAsteroids();
-                        createExplosion(asteroid.x, asteroid.y);
-                    }
-                });
-            });
-        }
 
         function createExplosion(x, y) {
             explosions.push({
@@ -464,8 +614,9 @@
                 drawSpaceship();
                 drawBullets();
                 drawAsteroids();
+                drawTextAsteroids();
                 drawExplosions();
-                checkCollisions();
+                checkCollisions(); // Make sure this line is present
             }
         }
 
@@ -488,14 +639,45 @@
             document.getElementById('gameCanvas').style.display = 'block';
             gameStarted = true;
             createAsteroids();
+            createTextAsteroids(); // Initialize text asteroids
             startTimer();
             setInterval(updateGame, 30);
         }
 
         function endGame(message) {
-            alert(message);
+            // Display the custom modal
+            const gameOverModal = document.getElementById('gameOverModal');
+            const gameOverMessage = document.getElementById('gameOverMessage');
+
+            gameOverMessage.textContent = message; // Set the game over message
+            gameOverModal.style.display = 'flex';  // Show the modal
+
+            // Disable key inputs when the game is over
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        }
+
+        // Function to handle restarting the game
+        function restartGame() {
             document.location.reload();
         }
+
+        // Define the key handlers
+        function handleKeyDown(e) {
+            keys[e.key] = true;
+            // Your existing game logic for keydown
+        }
+
+        function handleKeyUp(e) {
+            keys[e.key] = false;
+            // Your existing game logic for keyup
+        }
+
+        // Add event listeners for game input
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+
+
 
         let keys = {};
         window.addEventListener('keydown', (e) => {
