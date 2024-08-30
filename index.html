@@ -145,7 +145,7 @@
     <div id="instructions">
         <h1>Game and Music created by prompting Large Language Models</h1>
         <h1>Galactic Pioneers: Quick Start Guide</h1>
-        <p>Destroy asteroids and score points in 30 seconds!</p>
+        <p>Score points by destroying asteroids and capturing text asteroids in 30 seconds!</p>
         <h2>Controls:</h2>
         <ul>
             <li>Left Arrow: Rotate left</li>
@@ -156,17 +156,19 @@
         </ul>
         <h2>Gameplay:</h2>
         <ol>
-            <li>Shoot asteroids to score 100 points each.</li>
-            <li>Avoid collisions - you have 3 lives.</li>
+            <li>Shoot regular asteroids to score 100 points each.</li>
+            <li>Capture "200" and "500" text asteroids by colliding with them to collect bonus points.</li>
+            <li>Avoid collisions with regular asteroids - you have 3 lives.</li>
             <li>Game ends when time runs out or you lose all lives.</li>
         </ol>
         <h2>Tips:</h2>
         <ul>
-            <li>Watch the red timer in the top right.</li>
-            <li>Maximum 7 bullets on screen at once.</li>
-            <li>Careful with thrust - slowing down takes time!</li>
+            <li>Watch the red timer in the top right to track time left.</li>
+            <li>Only 7 bullets can be on screen at any given time.</li>
+            <li>Use careful maneuvering to capture text asteroids without hitting regular ones!</li>
+            <li>Plan your shots and movement wisely; slowing down takes time!</li>
         </ul>
-        <h1>Press "Enter" to start! and win one of three prizes</h1>
+        <h1>Press "Enter" to start! Capture the most points and win one of three prizes!</h1>
     </div>
     <div id="scoreboard" style="display: none;">Score: 0</div>
     <div id="timer" style="display: none;">Time: 30s</div>
@@ -655,6 +657,7 @@
             // Disable key inputs when the game is over
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
+
         }
 
         // Function to handle restarting the game
